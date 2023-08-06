@@ -1,0 +1,43 @@
+﻿@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<div style="width: 500px; height: 500px">
+    <CascadingValue Value="d">
+        <DiagramCanvas></DiagramCanvas>
+    </CascadingValue>
+</div>
+
+@code {
+    private Diagram d { get; set; }
+    private NotionClient nc { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        nc = NotionClientFactory.Create(new ClientOptions() { AuthToken = "" });
+
+        d = new Diagram(); //options
+
+        Setup();
+    }
+    private void Setup()
+    {
+        var node1 = NewNode(50, 50);
+        var node2 = NewNode(300, 300);
+        var node3 = NewNode(300, 50);
+        d.Nodes.Add(new[] { node1, node2, node3 });
+        d.Links.Add(new LinkModel(node1.GetPort(PortAlignment.Right), node2.GetPort(PortAlignment.Left)));
+    }
+
+    private NodeModel NewNode(double x, double y)
+    {
+        var node = new NodeModel(new Point(x, y));
+        node.AddPort(PortAlignment.Bottom);
+        node.AddPort(PortAlignment.Top);
+        node.AddPort(PortAlignment.Left);
+        node.AddPort(PortAlignment.Right);
+        return node;
+    }
+}
