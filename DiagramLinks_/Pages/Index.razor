@@ -1,0 +1,70 @@
+﻿@using Notion.Client;
+@using Blazor.Diagrams.Core;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Components;
+@using Blazor.Diagrams.Core.Geometry;
+@using Serilog;
+@using Serilog.Sinks.BrowserConsole;
+@using Serilog.Extensions.Logging;
+
+@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<div style="width: 500px; height: 500px">
+    <CascadingValue Value="d">
+        <DiagramCanvas></DiagramCanvas>
+    </CascadingValue>
+</div>
+
+@code {
+    private Diagram d { get; set; }
+    private NotionClient nc { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        using var serilog = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .MinimumLevel.Debug()
+            .WriteTo.BrowserConsole(outputTemplate: "{Timestamp:HH:mm} [{Level}] {Message}{Exception}")
+            .CreateLogger();
+
+        var loggerFactory = new LoggerFactory()
+        .AddSerilog(serilog);
+
+        Microsoft.Extensions.Logging.ILogger logger = loggerFactory.CreateLogger("Logger");
+
+
+        NotionClientLogging.ConfigureLogger(loggerFactory);
+
+        d = new Diagram(); //options
+
+        nc = NotionClientFactory.Create(new ClientOptions() { AuthToken = "secret_GFXX3oXKbOa8rPI8joPkO0h1YaBRlUpBZatfumNC4dE" });
+
+        var result = await nc.Databases.RetrieveAsync("9bea1b3176bb43b9a1aa272766e8ea6b");
+
+
+
+        /*foreach (var item in result.)
+        {
+            d.Nodes.Add(new NodeModel() { Position = new Point (0,0), Title = item.Properties["name"].Id });
+
+        }*/
+    }
+
+    /*
+
+    var node = new NodeModel(new Point(x, y));
+    node.AddPort(PortAlignment.Bottom);
+    node.AddPort(PortAlignment.Top);
+    node.AddPort(PortAlignment.Left);
+    node.AddPort(PortAlignment.Right);
+    return node;
+    var node1 = NewNode(50, 50);
+    var node2 = NewNode(300, 300);
+    var node3 = NewNode(300, 50);
+    d.Links.Add(new LinkModel(node1.GetPort(PortAlignment.Right), node2.GetPort(PortAlignment.Left)));*/
+
+}
