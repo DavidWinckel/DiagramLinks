@@ -1,0 +1,75 @@
+﻿@using Notion.Client;
+@using Blazor.Diagrams.Core;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Components;
+@using Blazor.Diagrams.Core.Geometry;
+@inject HttpClient Http
+
+@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<div style="width: 100vh; height: 100vh">
+    <CascadingValue Value="d">
+        <DiagramCanvas></DiagramCanvas>
+    </CascadingValue>
+</div>
+
+@code {
+    private Diagram d { get; set; }
+    private NotionClient nc { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        /*
+
+        @using Serilog;
+        @using Serilog.Sinks.BrowserConsole;
+        @using Serilog.Extensions.Logging;
+
+        using var serilog = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .MinimumLevel.Debug()
+            .WriteTo.BrowserConsole(outputTemplate: "{Timestamp:HH:mm} [{Level}] {Message}{Exception}")
+            .CreateLogger();
+
+        var loggerFactory = new LoggerFactory()
+        .AddSerilog(serilog);
+
+        Microsoft.Extensions.Logging.ILogger logger = loggerFactory.CreateLogger("Logger");
+
+
+        NotionClientLogging.ConfigureLogger(loggerFactory);
+        */
+
+        String key = await Http.GetStringAsync("GetSecret?name=NotionAPI");
+
+        d = new Diagram(); //options
+
+        nc = NotionClientFactory.Create(new ClientOptions() { AuthToken = key, BaseUrl = Http.BaseAddress.AbsoluteUri + "notionapi" });
+
+        var result = await nc.Databases.QueryAsync("9bea1b3176bb43b9a1aa272766e8ea6b", new DatabasesQueryParameters());
+
+        int i = 0;
+        foreach (var item in result.Results)
+        {
+            d.Nodes.Add(new NodeModel() { Position = new Point(i, 0), Title = (item.Properties["Nom"] as TitlePropertyValue).Title[0].PlainText });
+            i += 100;
+        }
+    }
+    /*
+
+    var node = new NodeModel(new Point(x, y));
+    node.AddPort(PortAlignment.Bottom);
+    node.AddPort(PortAlignment.Top);
+    node.AddPort(PortAlignment.Left);
+    node.AddPort(PortAlignment.Right);
+    return node;
+    var node1 = NewNode(50, 50);
+    var node2 = NewNode(300, 300);
+    var node3 = NewNode(300, 50);
+    d.Links.Add(new LinkModel(node1.GetPort(PortAlignment.Right), node2.GetPort(PortAlignment.Left)));*/
+
+}
